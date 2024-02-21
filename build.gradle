@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id 'war'
+    id 'org.springframework.boot' version '3.2.2'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'com.github.node-gradle.node' version '3.1.0'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = '17'
+}
+
+repositories {
+    mavenCentral()
+}
+
+node {
+    nodeModulesDir = file("${project.projectDir}/src/main/frontend")
+}
+
+task npmInstallDependencies(type: NpmTask) {
+    execOverrides {
+        it.ignoreExtValue = true
+        it.workingDir = 'src/main/frontend'
+    }
+    args = ['install']
+}
+
+task npmBuild(type: NpmTask) {
+    //dependsOn 'npmInstallDependencies'
+    execOverrides {
+        it.workingDir = 'src/main/frontend'
+    }
+    args = ['run','build']
+}
+
+task copyFrontendtoBuild(type: Copy){
+    from "$projectDir/src/main/frontend/build"
+    into "$buildDir/resources/main/static"
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.webjars.npm:react:18.1.0' // react
+    implementation 'org.webjars.npm:react-dom:18.1.0' // react-dom
+    implementation 'org.webjars.npm:js-tokens:3.0.0' // additional for webjars react
+    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
